@@ -1,0 +1,69 @@
+﻿@rendermode InteractiveServer
+
+<div class="d-flex flex-column justify-content-center align-items-center gap-3 flex-sm-wrap">
+    <div class="d-flex flex-row justify-content-center align-items-center gap-3">
+        <button class="p-3" style="@ButtonStyle(0)" @onclick="() => SelectButton(0)" disabled="@isDisabled">
+            <img class="mb-0" height="150px" width="150px" src="https://store.brth.uk/pitahaya/rock.png" />
+            <h3>Rock</h3>
+        </button>
+        <button class="p-3" style="@ButtonStyle(1)" @onclick="() => SelectButton(1)" disabled="@isDisabled">
+            <img class="mb-0" height="150px" width="150px" src="https://store.brth.uk/pitahaya/paper.png" />
+            <h3>Paper</h3>
+        </button>
+        <button class="p-3" style="@ButtonStyle(2)" @onclick="() => SelectButton(2)" disabled="@isDisabled">
+            <img class="mb-0" height="150px" width="150px" src="https://store.brth.uk/pitahaya/scissors.png" />
+            <h3>Scissors</h3>
+        </button>
+    </div>
+    <div class="d-flex flex-row justify-content-center align-items-center gap-3">
+        <button class="p-3" style="@ButtonStyle(3)" @onclick="() => SelectButton(3)" disabled="@isDisabled">
+            <img class="mb-0" height="150px" width="150px" src="https://store.brth.uk/pitahaya/lizard.png" />
+            <h3>Lizard</h3>
+        </button>
+        <button class="p-3" style="@ButtonStyle(4)" @onclick="() => SelectButton(4)" disabled="@isDisabled">
+            <img class="mb-0" height="150px" width="150px" src="https://store.brth.uk/pitahaya/spock.png" />
+            <h3>Spock</h3>
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int? userSelection { get; set; }
+
+    [Parameter]
+    public bool isDisabled { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> OnUserSelectionChange { get; set; }
+
+    /// <summary>
+    /// Generates the style for each button based on its type and user selection.
+    /// </summary>
+    /// <param name="buttonType">The type of the button (0 for Rock, 1 for Paper, 2 for Scissors, 3 for Lizard, 4 for Spock).</param>
+    /// <returns>The CSS style for the button.</returns>
+
+    private string ButtonStyle(int buttonType)
+    {
+        if (buttonType == userSelection)
+        {
+            return "border-color: blue; border-width: 5px;"; // Change the border color to mark it as selected
+        }
+        else
+        {
+            return ""; // Default style
+        }
+    }
+
+    /// <summary>
+    /// Handles the selection of a button by the user.
+    /// </summary>
+    /// <param name="buttonType">The type of the button (0 for Rock, 1 for Paper, 2 for Scissors, 3 for Lizard, 4 for Spock).</param>
+    /// <returns>An asynchronous task.</returns>
+    
+    private async Task SelectButton(int buttonType)
+    {
+        userSelection = buttonType;
+        await OnUserSelectionChange.InvokeAsync(userSelection);
+    }
+}

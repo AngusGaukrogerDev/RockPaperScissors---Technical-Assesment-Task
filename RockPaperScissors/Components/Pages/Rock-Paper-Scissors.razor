@@ -1,0 +1,210 @@
+﻿@page "/rock-paper-scissors/{gameType}"
+@using RockPaperScissors.Components.UIComponents;
+
+@rendermode InteractiveServer
+
+<div class="container h-100 d-flex flex-column justify-content-center align-items-center">
+    <div class="card d-flex flex-column justify-content-center align-items-center gap-3 p-5">
+        @if (!timerExpired)
+        {
+            <div class="mb-3">
+                <h3>@timerValue</h3>
+            </div>
+            <h3 class="mb-3">Pick Now!</h3>
+            @if (gameType == "classic" || gameType == "last-choice")
+            {
+                <ClassicGameControls userSelection="@userSelection"
+                                     isDisabled="@isDisabled"
+                                     OnUserSelectionChange="handleUserSelectionChange" />
+            }
+            else if (gameType == "rpsls")
+            {
+                <RPSLSGameControls userSelection="userSelection"
+                                   isDisabled="isDisabled"
+                                   OnUserSelectionChange="handleUserSelectionChange" />
+            }
+        }
+        else
+        {
+            <ResultsScreen computerSelection="@computerSelection"
+                           selectedItem="@selectedItem"
+                           winState="@winState"
+                           OnPlayAgainChange="handlePlayAgainChange" />
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string gameType { get; set; }
+
+    /// <summary>
+    /// Global state variables for game
+    /// </summary>
+    ///
+    public int timerValue = 5;
+    public bool timerExpired = false;
+    private bool isDisabled = false;
+
+    public int? userSelection = null;
+    private int winState = 0;
+
+    private string? userSelectionPreviousRound = null;
+    private string selectedItem = "";
+    private string computerSelection = "";
+
+    /// <summary>
+    /// Dictionary to map button indices to their corresponding names
+    /// </summary>
+    public Dictionary<int, string> ButtonIndexMap = new Dictionary<int, string>
+    {
+        {0, "Rock"},
+        {1, "Paper"},
+        {2, "Scissors"},
+        {3, "Lizard"},
+        {4, "Spock"}
+    };
+
+    /// <summary>
+    /// Initializes the component, starts the timer, and randomly selects the computer's choice.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        // Start the timer
+        var timer = new System.Timers.Timer(1000);
+        timer.Elapsed += HandleTimerTick;
+        timer.Start();
+        RandomlySelectComputerChoice();
+    }
+
+    /// <summary>
+    /// Resets the game state when the user chooses to play again.
+    /// </summary>
+    public void handlePlayAgainChange()
+    {
+        //For Last Choice game-mode - set previous user selection to currently selected item
+        userSelectionPreviousRound = selectedItem;
+
+        // Randomly select computer's choice
+        RandomlySelectComputerChoice();
+        userSelection = null;
+        winState = 0;
+        timerValue = 5;
+        timerExpired = false;
+        isDisabled = false;
+    }
+
+    /// <summary>
+    /// Randomly selects the computer's choice based on the game type.
+    /// </summary>
+    private void RandomlySelectComputerChoice()
+    {
+        Random rnd = new Random();
+
+        //Filter computer selection based off game-mode
+
+        //if arguments passed in url are for Rock, Paper, Scissors, Lizard, Spock
+        // - there are 5 options available to the computer
+
+        if (gameType == "rpsls")
+        {
+            computerSelection = ButtonIndexMap[rnd.Next(0, 5)];
+        }
+        //if arguments passed in url are for last choice game-mode,
+        //ensure that it is not first round by checking of previous selection is null
+
+        else if (gameType == "last-choice" && userSelectionPreviousRound != null)
+        {
+            computerSelection = userSelectionPreviousRound;
+        }
+
+        //Otherwise default to classic random selection of Rock, Paper or Scissors
+
+        else
+        {
+            computerSelection = ButtonIndexMap[rnd.Next(0, 3)];
+        }
+    }
+
+    /// <summary>
+    /// Handles the timer tick event, updating the timer value and checking for timer expiration.
+    /// </summary>
+    private void HandleTimerTick(object sender, System.Timers.ElapsedEventArgs e)
+    {
+        if (timerValue > 0)
+        {
+            timerValue--;
+        }
+        else
+        {
+            timerExpired = true;
+            isDisabled = true;
+            selectedItem = GetSelectedItem();
+            winState = FindWinner();
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    /// <summary>
+    /// Determines the winner of the game based on user and computer selections.
+    /// </summary>
+    private int FindWinner()
+    {
+        Dictionary<string, List<string>> winningMoves = new Dictionary<string, List<string>>
+        {
+            { "Rock", new List<string> { "Scissors", "Lizard" } },
+            { "Paper", new List<string> { "Rock", "Spock" } },
+            { "Scissors", new List<string> { "Paper", "Lizard" } },
+            { "Lizard", new List<string> { "Spock", "Paper" } },
+            { "Spock", new List<string> { "Scissors", "Rock" } }
+        };
+
+        if(userSelection != null)
+        {   
+            if (winningMoves.ContainsKey(ButtonIndexMap[(int)userSelection]))
+            {
+                if (ButtonIndexMap[(int)userSelection] == computerSelection)
+                    return 0; // Tie
+                else if (winningMoves[ButtonIndexMap[(int)userSelection]].Contains(computerSelection))
+                    return 1; // User wins
+                else
+                    return 2; // Computer wins
+            }
+            else
+            {
+                return 2; // Default case if no match found
+            }
+        }
+        else
+        {
+            return 2; // Default case if no match found
+        }
+    }
+
+    /// <summary>
+    /// Returns the name of the item selected by the user.
+    /// </summary>
+    private string GetSelectedItem()
+    {
+        if(userSelection != null)
+        {
+            return ButtonIndexMap[(int)userSelection];
+        }
+        else
+        {
+            return "Nothing";
+        }
+    }
+
+    /// <summary>
+    /// Handles the change in user selection.
+    /// </summary>
+    /// <param name="data">The index of the selected item.</param>
+    private void handleUserSelectionChange(int? data)
+    {
+        userSelection = data;
+    }
+
+}

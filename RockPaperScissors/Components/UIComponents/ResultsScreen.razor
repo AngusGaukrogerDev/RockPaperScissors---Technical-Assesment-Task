@@ -1,0 +1,78 @@
+﻿@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+
+<div class="d-flex flex-row justify-content-center align-items-center gap-3">
+    <div class="d-flex flex-column justify-content-center align-items-center w-50">
+        <h3>You selected: @selectedItem</h3>
+        @if (selectedItem != "Nothing")
+        {
+            <img height="200px" width="200px" src="@($"https://store.brth.uk/pitahaya/{selectedItem.ToLower()}.png")" />
+        }
+
+    </div>
+    <div class="d-flex flex-column justify-content-center align-items-center w-50">
+        <h3>Computer selected: @computerSelection</h3>
+        <img height="200px" width="200px" src="@($"https://store.brth.uk/pitahaya/{computerSelection.ToLower()}.png")" />
+    </div>
+</div>
+<h3 class="mt-3">@GetResultText()</h3>
+<div class="d-flex flex-row justify-content-center align-items-center gap-3">
+    <button class="btn btn-primary w-50 btn-block mb-3" @onclick="PlayAgain">Play Again</button>
+    <button class="btn btn-primary w-50 btn-block mb-3" @onclick="Dash">Dashboard</button>
+</div>
+
+@code {
+    [Parameter]
+    public string? selectedItem { get; set; }
+
+    [Parameter]
+    public string? computerSelection { get; set; }
+
+    [Parameter]
+    public int winState { get; set; }
+
+    [Parameter]
+    public EventCallback OnPlayAgainChange { get; set; }
+
+    public Dictionary<int, string> WinStates = new Dictionary<int, string>
+    {
+        {0, "It's a Draw!"},
+        {1, "You Win!"},
+        {2, "You Lose!"},
+    };
+
+    /// <summary>
+    /// Gets the text result based on the win state.
+    /// </summary>
+    /// <returns>The text result indicating the outcome of the game.</returns>
+
+    private string GetResultText()
+    {
+        if (WinStates.ContainsKey(winState))
+        {
+            return WinStates[winState];
+        }
+        return "";
+    }
+
+    /// <summary>
+    /// Handles the play again action.
+    /// </summary>
+    /// <returns>An asynchronous task.</returns>
+
+    private async Task PlayAgain()
+    {
+        await OnPlayAgainChange.InvokeAsync();
+    }
+
+    /// <summary>
+    /// Navigates to the main menu.
+    /// </summary>
+    
+    private void Dash()
+    {
+        // Navigate to Main Menu
+        NavigationManager.NavigateTo($"/");
+    }
+
+}

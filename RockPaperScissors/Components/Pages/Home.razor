@@ -1,0 +1,26 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>Dashboard</PageTitle>
+
+<div class="container h-100 d-flex justify-content-center align-items-center">
+    <div class="card p-5">
+        <div class="card-body p-5">
+            <h2 class="card-title text-center mb-3">Which game mode would you like to play?</h2>
+
+            <div class="btn-group-vertical d-flex flex-column align-items-center">
+                <button class="btn btn-primary w-50 btn-block mb-3" @onclick='() => Navigate("classic")'>Classic</button>
+                <button class="btn btn-primary w-50 btn-block mb-3" @onclick='() => Navigate("last-choice")'>Last Choice</button>
+                <button class="btn btn-primary w-50 btn-block mb-3" @onclick='() => Navigate("rpsls")'>RPSLS</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private void Navigate(string gameMode)
+    {
+        NavigationManager.NavigateTo($"/rock-paper-scissors/{gameMode}");
+    }
+}
